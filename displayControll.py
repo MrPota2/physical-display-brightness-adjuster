@@ -16,22 +16,6 @@ safe_max = 37929.8
 safe_min = 19586.72
 safe_mid = 28408.24
 vals = []
-translatedVals = []
-
-logging.basicConfig(level=logging.DEBUG)
-logging.debug("Starting up")
-
-
-def getAveragePot():
-    while len(vals) < 100:
-        if board.in_waiting > 0:
-            line = board.readline().decode("utf-8").strip()
-            print(line)
-            vals.append(float(line))
-            if len(vals) % 10 == 0:
-                print(len(vals) / 10)
-
-    return sum(vals) / len(vals), min(vals), max(vals)
 
 
 def getPot():
