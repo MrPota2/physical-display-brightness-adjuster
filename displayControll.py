@@ -9,7 +9,7 @@ def getPot():
         if board.in_waiting > 0:
             line = board.readline().decode("utf-8").strip()
             pot, sw = line.split(" ")
-            return int(round(float(pot), 0)), int(sw)
+            return int(round(float(pot))), int(sw)
 
 
 def changeBrightness(pot, sw):
