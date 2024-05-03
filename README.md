@@ -46,7 +46,3 @@ After saving, the code will run automatically when the pico is connected to a po
 Run `displayControl.py` on your computer. and you can adjust the brightness of the monitor by turning the potentiometer.  
 The switch is used to select the monitor.
 _Only works with two monitors._
-
-```python
-
-```
