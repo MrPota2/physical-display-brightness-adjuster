@@ -1,13 +1,27 @@
 import serial as s
+import serial.tools.list_ports as list_ports
 import monitorcontrol as mc
+from time import sleep
 
-board = s.Serial("COM3", 9600)
+SERIAL_NUMBER = "454741505687539A"  # Serial number of the Raspberry Pi Pico
 
 
-def getPot():
+def find_pico_com_port():
+    """Automatically find the COM port of the Raspberry Pi Pico."""
+    ports = list_ports.comports()
+    for port in ports:
+        if (
+            port.serial_number != None and SERIAL_NUMBER in port.serial_number
+        ):  # Check for Pico in the port description
+            return port.device
+    raise Exception("Raspberry Pi Pico not found. Please ensure it is connected.")
+
+
+def getPot(board):
     while True:
         if board.in_waiting > 0:
             line = board.readline().decode("utf-8").strip()
+            print(line)
             pot, sw = line.split(" ")
             return int(round(float(pot))), int(sw)
 
@@ -15,6 +29,7 @@ def getPot():
 def changeBrightness(pot, sw):
     monitor = mc.get_monitors()[sw]
     with monitor:
+        print("Changing brightness of monitor", sw)
         prev_luminance = monitor.get_luminance()
         luminance = prev_luminance + pot
         if luminance > 100:
@@ -25,13 +40,21 @@ def changeBrightness(pot, sw):
 
 
 def main():
+    print("Starting display control")
     while True:
-        pot, sw = getPot()
-        # Change brightness if difference is greater than 0.15
         try:
-            changeBrightness(pot, sw)
+            com_port = find_pico_com_port()
+            board = s.Serial(com_port, 9600, timeout=1)
         except Exception as e:
-            print("Error changing brightness:", e)
+            sleep(5)
+            continue
+        while True:
+            try:
+                pot, sw = getPot(board)
+                changeBrightness(-pot, sw)
+            except Exception as e:
+                print("Error changing brightness:", e)
+                break
 
 
 main()
