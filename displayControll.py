@@ -11,7 +11,7 @@ def find_pico_com_port():
     ports = list_ports.comports()
     for port in ports:
         if (
-            port.serial_number != None and SERIAL_NUMBER in port.serial_number
+            port.serial_number is not None and SERIAL_NUMBER in port.serial_number.upper()
         ):  # Check for Pico in the port description
             return port.device
     raise Exception("Raspberry Pi Pico not found. Please ensure it is connected.")
@@ -46,21 +46,33 @@ def changeBrightness(pot, sw):
 
 def main():
     print("Starting display control")
+    board = None
     while True:
-        try:
-            com_port = find_pico_com_port()
-            board = s.Serial(com_port, 9600, timeout=1)
-        except Exception as e:
-            sleep(5)
-            continue
-        while True:
+        if board is None or not board.is_open:
+            print("Finding Pico COM port...")
             try:
-                pot, sw = getPot(board)
-                changeBrightness(-pot, sw)
-            except s.SerialException as e:
-                break
+                com_port = find_pico_com_port()
+                board = s.Serial(com_port, 9600, timeout=1)
+                print("Pico COM port found:", com_port)
             except Exception as e:
+                print("Error finding Pico COM port:", e)
+                sleep(5)
                 continue
+
+        try:
+            pot, sw = getPot(board)
+            print(pot, sw)
+            changeBrightness(-pot, sw)
+        except (s.SerialException, OSError) as e:
+            print("Lost connection to Pico. Reconnecting...")
+            try:
+                board.close()
+            except:
+                pass
+            board = None
+            sleep(2)
+        except Exception as e:
+            continue
 
 
 main()
